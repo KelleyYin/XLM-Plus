@@ -59,7 +59,7 @@ Notes:
 `--share_word_embeddings`: sharing a same word embedding tabel for different languages   
 `--share_lang_embeddings`: sharing a same language embedding tabel between encoder and decoder    
 `--share_all_embeddings`: conbining the above two methods    
-`--label_smoothing`: using label smoothing critrion
+`--label_smoothing`: using label smoothing criterion
 
 
 Decoding script as follow.
