@@ -4,9 +4,9 @@ SRC=zh
 TGT=en
 src_file=/data2/mmyin/XLM-experiments/MT-data/zh-en-ldc-32k/test_set
 
-model_file=/data2/mmyin/XLM-experiments/XLM-update/checkpoints/Supervised_MT/LDC_zh-en_not_share_vocab_label_smoothing
-#model=$model_file/best-valid_zh-en_mt_bleu.pth
-model=$model_file/checkpoint.pth
+model_file=./checkpoints/Supervised_MT/LDC_zh-en_not_share_vocab_label_smoothing_update
+model=$model_file/best-valid_zh-en_mt_bleu.pth
+#model=$model_file/checkpoint.pth
 
 ref=/data2/mmyin/XLM-experiments/MT-data/zh-en-ldc-32k/test.zh-en.en
 

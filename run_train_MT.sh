@@ -7,7 +7,7 @@ export NGPU=4
 
 python -m torch.distributed.launch --nproc_per_node=$NGPU train.py \
     --exp_name Supervised_MT \
-    --exp_id LDC_zh-en_not_share_vocab_label_smoothing_update\
+    --exp_id LDC_zh-en_not_share_vocab_label_smoothing_lr_0001\
     --dump_path ./checkpoints \
     --save_periodic 2 \
     --data_path $data_bin \
@@ -27,7 +27,7 @@ python -m torch.distributed.launch --nproc_per_node=$NGPU train.py \
     --tokens_per_batch 2000 \
     --batch_size 32 \
     --bptt 256 \
-    --optimizer adam_inverse_sqrt,beta1=0.9,beta2=0.98,lr=0.0007 \
+    --optimizer adam_inverse_sqrt,beta1=0.9,beta2=0.98,lr=0.0001 \
     --epoch_size 200000 \
     --eval_bleu True\
     --stopping_criterion 'valid_zh-en_mt_bleu,10' \
