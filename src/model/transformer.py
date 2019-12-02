@@ -115,6 +115,8 @@ class PredLayer(nn.Module):
 
         if params.asm is False:
             self.proj = Linear(dim, params.n_words, bias=True)
+            # if params.label_smoothing > 0:
+            #     self.loss_func = LabelSmoothingCriterion(params.label_smoothing, params.n_words)
         else:
             self.proj = nn.AdaptiveLogSoftmaxWithLoss(
                 in_features=dim,
@@ -145,6 +147,7 @@ class PredLayer(nn.Module):
                 eps_i = self.label_smoothing / self.n_words
                 loss = (1. - self.label_smoothing) * nll_loss + eps_i * smooth_loss
                 loss = loss / scores.size(0)
+                # loss = self.loss_func(scores, y)
             else:
                 loss = F.cross_entropy(scores, y, reduction='mean')
         else:
@@ -246,6 +249,7 @@ class TransformerFFN(nn.Module):
     def forward(self, input):
         x = self.lin1(input)
         x = self.act(x)
+        # x = F.dropout(x, p=self.dropout, training=self.training)
         x = self.lin2(x)
         x = F.dropout(x, p=self.dropout, training=self.training)
         return x
@@ -255,7 +259,7 @@ class TransformerModel(nn.Module):
 
     ATTRIBUTES = ['encoder', 'with_output', 'eos_index', 'pad_index', 'n_langs', 'n_words', 'dim', 'n_layers', 'n_heads', 'hidden_dim', 'dropout', 'attention_dropout', 'asm', 'asm_cutoffs', 'asm_div_value']
 
-    def __init__(self, params, dico, is_encoder, with_output, word_emb=None):
+    def __init__(self, params, dico, is_encoder, with_output, word_emb=None, lang_emb=None):
         """
         Transformer model (encoder or decoder).
         """
@@ -292,7 +296,10 @@ class TransformerModel(nn.Module):
 
         if params.sinusoidal_embeddings:
             create_sinusoidal_embeddings(N_MAX_POSITIONS, self.dim, out=self.position_embeddings.weight)
-        if params.n_langs > 1 and self.use_lang_emb:
+
+        if lang_emb:
+            self.lang_embeddings = lang_emb
+        elif params.n_langs > 1 and self.use_lang_emb:
             self.lang_embeddings = Embedding(self.n_langs, self.dim)
 
         if not word_emb:
@@ -334,6 +341,7 @@ class TransformerModel(nn.Module):
         # output layer
         if self.with_output:
             self.pred_layer = PredLayer(params)
+
             if params.share_inout_emb:
                 self.pred_layer.proj.weight = self.embeddings.weight
 
@@ -766,3 +774,22 @@ class BeamHypotheses(object):
             return True
         else:
             return self.worst_score >= best_sum_logprobs / self.max_len ** self.length_penalty
+
+
+class LabelSmoothingCriterion(nn.Module):
+    def __init__(self, smoothing, size):
+        super(LabelSmoothingCriterion, self).__init__()
+        self.criterion = nn.KLDivLoss(reduction='sum')
+        self.smoothing = smoothing
+        self.size = size
+        self.confidence = 1. - smoothing
+        self.true_dist = None
+
+    def forward(self, input, target):
+        x = F.log_softmax(input, dim=-1)
+        true_dist = x.data.clone()
+        true_dist.fill_(self.smoothing / (self.size - 2))
+        true_dist.scatter_(1, target.data.unsqueeze(1), self.confidence)
+        self.true_dist = true_dist
+
+        return self.criterion(x, true_dist) / x.size(0)

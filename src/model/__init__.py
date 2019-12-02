@@ -25,18 +25,22 @@ class wordEmbedding(nn.Module):
         self.dico = dico
         self.embed_dim = embed_dim
         self.emb = self.build_embedding()
+        if params.share_lang_embeddings and params.n_langs > 1 and params.use_lang_emb:
+            self.lang_emb = self.Embedding(self.params.n_langs, self.embed_dim)
+        else:
+            self.lang_emb = None
 
     def build_embedding(self):
         if self.params.share_word_embeddings or self.params.share_all_embeddings:
-            word_embeddings = self.Embedding(self.dico, self.embed_dim, self.params.pad_index)
+            word_embeddings = self.Embedding(len(self.dico), self.embed_dim, self.params.pad_index)
         else:
             word_embeddings = {}
             for k, v in self.dico.items():
-                word_embeddings[k] = self.Embedding(v, self.embed_dim, self.params.pad_index)
+                word_embeddings[k] = self.Embedding(len(v), self.embed_dim, self.params.pad_index)
+
         return word_embeddings
 
-    def Embedding(self, dict, embedding_dim, padding_idx):
-        num_embeddings = len(dict)
+    def Embedding(self, num_embeddings, embedding_dim, padding_idx=None):
         m = nn.Embedding(num_embeddings, embedding_dim, padding_idx=padding_idx)
         nn.init.normal_(m.weight, mean=0, std=embedding_dim ** -0.5)
         nn.init.constant_(m.weight[padding_idx], 0)
@@ -136,6 +140,7 @@ def build_model(params, dico):
 
     word_embeddings = wordEmbedding(params, dico, params.emb_dim)
     emb = word_embeddings.emb
+    lang_emb = word_embeddings.lang_emb
     if params.encoder_only:
         # build
         model = TransformerModel(params, dico, is_encoder=True, with_output=True)
@@ -163,17 +168,16 @@ def build_model(params, dico):
         return model.cuda()
     else:
         # build
-
         if params.share_word_embeddings or params.share_all_embeddings:
-            encoder = TransformerModel(params, dico, emb, is_encoder=True, with_output=False)  # TODO: only output when necessary - len(params.clm_steps + params.mlm_steps) > 0
-            decoder = TransformerModel(params, dico, emb, is_encoder=False, with_output=True)
+            encoder = TransformerModel(params, dico, is_encoder=True, with_output=False, word_emb=emb, lang_emb=lang_emb)  # TODO: only output when necessary - len(params.clm_steps + params.mlm_steps) > 0
+            decoder = TransformerModel(params, dico, is_encoder=False, with_output=True, word_emb=emb, lang_emb=lang_emb)
         else:
             if len(params.mt_steps) <= 1:
                 src_lang, tgt_lang = params.mt_steps[0]
                 src_emb = emb[src_lang]
                 tgt_emb = emb[tgt_lang]
-                encoder = TransformerModel(params, dico[src_lang], is_encoder=True, with_output=False, word_emb=src_emb)  # TODO: only output when necessary - len(params.clm_steps + params.mlm_steps) > 0
-                decoder = TransformerModel(params, dico[tgt_lang], is_encoder=False, with_output=True, word_emb=tgt_emb)
+                encoder = TransformerModel(params, dico[src_lang], is_encoder=True, with_output=False, word_emb=src_emb, lang_emb=lang_emb)  # TODO: only output when necessary - len(params.clm_steps + params.mlm_steps) > 0
+                decoder = TransformerModel(params, dico[tgt_lang], is_encoder=False, with_output=True, word_emb=tgt_emb, lang_emb=lang_emb)
             else:
                 print('sorry')
                 exit()
