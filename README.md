@@ -56,7 +56,7 @@ python -m torch.distributed.launch --nproc_per_node=$NGPU train.py \
 ```
 
 Notes:    
-`--share_word_embeddings`: sharing a same word embedding tabel for different languages   
+`--share_word_embeddings`: sharing a same word embedding tabel for different languages      
 `--share_lang_embeddings`: sharing a same language embedding tabel between encoder and decoder    
 `--share_all_embeddings`: conbining the above two methods    
 `--label_smoothing`: using label smoothing criterion
@@ -103,10 +103,9 @@ done
 ```
 
 
-
+ 
 
 ## Experiment Test
-
 
 nist02 | nist03 | nist04 | nist05 | nist08 | avg | Note
 ---|---|---|---|---|--- | ----
@@ -118,5 +117,7 @@ nist02 | nist03 | nist04 | nist05 | nist08 | avg | Note
 45.86 | 45.13 | 46.66 | 45.48 | 36.96 | 44.02 | labelsmoothing+dp03+NoLangEmb
 45.36 | 44.19 | 46.41 | 45.86 | 37.07 | 43.78 | label+dp03+shareLangEmb
 46.19 | 43.98 | 46.43 | 45.43 | 36.55 | 43.72 | label+dp03+shareLangEmb+Drop
+45.17 | 44.27 | 46.38 | 44.55 | 36.81 | 43.44 | label+dp03+shareLangEmb+Sim
+
 
 

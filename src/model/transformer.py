@@ -136,9 +136,8 @@ class PredLayer(nn.Module):
             scores = self.proj(x).view(-1, self.n_words)
             # loss = F.cross_entropy(scores, y, reduction='sum')
             if self.label_smoothing > 0:
-                y = y.unsqueeze(1)
                 scores = F.log_softmax(scores, dim=-1)
-                nll_loss = -scores.gather(dim=-1, index=y)
+                nll_loss = -scores.gather(dim=-1, index=y.unsqueeze(1))
                 smooth_loss = - scores.sum(dim=-1, keepdim=True)
 
                 nll_loss = nll_loss.sum()
