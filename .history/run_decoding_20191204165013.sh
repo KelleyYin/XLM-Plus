@@ -4,8 +4,8 @@ SRC=zh
 TGT=en
 src_file=/data2/mmyin/XLM-experiments/MT-data/zh-en-ldc-32k/test_set
 
-model_file=./checkpoints/Supervised_MT/LDC_zh-en_not_share_vocab_label_smoothing_lr_0005_dropout03_share_langEmb_noAttnDrop
-model=$model_file/best-valid_zh-en_mt_bleu.pth
+model_file=./checkpoints/Supervised_MT/LDC_zh-en_not_share_vocab_label_smoothing_lr_0005_dropout03_share_langEmb_sinusoidal
+# model=$model_file/best-valid_zh-en_mt_bleu.pth
 # model=$model_file/periodic-36.pth
 
 ref=/data2/mmyin/XLM-experiments/MT-data/zh-en-ldc-32k/test.zh-en.en

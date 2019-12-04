@@ -8,7 +8,7 @@ model_file=./checkpoints/Supervised_MT/LDC_zh-en_not_share_vocab_label_smoothing
 model=$model_file/best-valid_zh-en_mt_bleu.pth
 # model=$model_file/periodic-36.pth
 
-ref=/data2/mmyin/XLM-experiments/MT-data/zh-en-ldc-32k/test.zh-en.en
+ref=/data2/mmyin/XLM-experiments/MT-data/zh-en-ldc-32k/test.zh-en.en-ad
 
 tst_sets="nist02 nist03 nist04 nist05 nist08"
 
