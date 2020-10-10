@@ -118,8 +118,6 @@ def get_parser():
 
     parser.add_argument("--share_word_embeddings", type=bool_flag, default=True,
                         help="Share word embedding for encoder and decoder")
-    parser.add_argument("--share_lang_embeddings", type=bool_flag, default=False,
-                        help="share the language embeddings for encoder and decoder")
     parser.add_argument("--share_all_embeddings", type=bool_flag, default=False,
                         help='share the embeddings of words and languages respectively on encoder and decoder')
 
@@ -193,6 +191,7 @@ def get_parser():
     parser.add_argument("--reload_checkpoint", type=str, default="",
                         help="Reload a checkpoint")
 
+
     # beam search (for MT only)
     parser.add_argument("--beam_size", type=int, default=1,
                         help="Beam size, default = 1 (greedy decoding)")
@@ -207,6 +206,10 @@ def get_parser():
     parser.add_argument("--eval_only", type=bool_flag, default=False,
                         help="Only run evaluations")
 
+    #multilingual NMT
+    parser.add_argument("--mnmt", help="use multilingual mnmt", action="store_true")
+
+
     # debug
     parser.add_argument("--debug_train", type=bool_flag, default=False,
                         help="Use valid sets for train sets (faster loading)")
@@ -220,6 +223,7 @@ def get_parser():
                         help="Multi-GPU - Local rank")
     parser.add_argument("--master_port", type=int, default=-1,
                         help="Master port (for multi-node SLURM jobs)")
+
 
     return parser
 

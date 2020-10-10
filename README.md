@@ -20,45 +20,45 @@ Traning script as follow.
 ```
 data_bin=/data2/mmyin/XLM-experiments/data-bin/xlm-data-bin/zh-en-ldc-32k
 
-export CUDA_VISIBLE_DEVICES=0,1,2,3
+export CUDA_VISIBLE_DEVICES=1,2,3,4
 export NGPU=4
 
 python -m torch.distributed.launch --nproc_per_node=$NGPU train.py \
     --exp_name Supervised_MT \
-    --exp_id LDC_zh-en_not_share_vocab_label_smoothing_update\
+    --exp_id LDC_ch-en_no_share_vocab_label_smoothing_lr_0005_dropout03_share_langEmb_noAttnDrop\
     --dump_path ./checkpoints \
     --save_periodic 2 \
     --data_path $data_bin \
     --encoder_only False \
     --share_word_embeddings False \
-    --share_lang_embeddings False \
+    --use_lang_emb False \
+    --sinusoidal_embeddings False \
     --share_all_embeddings False \
     --label_smoothing 0.1 \
-    --lgs 'en-zh' \
+    --lgs 'ch-en' \
     --clm_steps '' \
     --mlm_steps '' \
-    --mt_steps 'zh-en' \
+    --mt_steps 'ch-en' \
     --emb_dim 512 \
     --n_layers 6 \
     --n_heads 8 \
-    --dropout 0.1 \
+    --dropout 0.3 \
     --attention_dropout 0.1 \
-    --gelu_activation True \
-    --tokens_per_batch 2000 \
+    --gelu_activation False \
+    --tokens_per_batch 7000 \
     --batch_size 32 \
     --bptt 256 \
-    --optimizer adam_inverse_sqrt,beta1=0.9,beta2=0.98,lr=0.0001 \
+    --optimizer adam_inverse_sqrt,beta1=0.9,beta2=0.98,lr=0.0005 \
     --epoch_size 200000 \
     --eval_bleu True\
-    --stopping_criterion 'valid_zh-en_mt_bleu,10' \
-    --validation_metrics 'valid_zh-en_mt_bleu'
+    --stopping_criterion 'valid_ch-en_mt_bleu,10' \
+    --validation_metrics 'valid_ch-en_mt_bleu' 
 
 ```
 
 Notes:    
-`--share_word_embeddings`: sharing a same word embedding tabel for different languages      
-`--share_lang_embeddings`: sharing a same language embedding tabel between encoder and decoder    
-`--share_all_embeddings`: conbining the above two methods    
+`--share_word_embeddings`: sharing the same word embedding for different languages      
+`--share_all_embeddings`: combining the above two methods    
 `--label_smoothing`: using label smoothing criterion
 
 
@@ -112,12 +112,7 @@ nist02 | nist03 | nist04 | nist05 | nist08 | avg | Note
 47.16 | 46.16 | 47.09 | 46.33 | 38.11 | 44.97 | fairseq-baseline
 42.90 | 40.73 | 42.95 | 41.58 | 33.57 | 40.35 | share_vocab
 44.41 | 42.74 | 44.54 | 43.52 | 35.45 | 42.13 | independent_vocab
-44.82 | 43.49 | 44.63 | 43.10 | 35.16 | 42.24 | labelSmoothing
-45.63 | 43.99 | 45.86 | 45.00 | 36.30 | 43.36 | labelSmoothing+dp03
-45.86 | 45.13 | 46.66 | 45.48 | 36.96 | 44.02 | labelsmoothing+dp03+NoLangEmb
-45.36 | 44.19 | 46.41 | 45.86 | 37.07 | 43.78 | label+dp03+shareLangEmb
-46.19 | 43.98 | 46.43 | 45.43 | 36.55 | 43.72 | label+dp03+shareLangEmb+Drop
-45.17 | 44.27 | 46.38 | 44.55 | 36.81 | 43.44 | label+dp03+shareLangEmb+Sim
+48.16 | 46.73 | 47.92 | 48.09 | 38.65 | 45.91 | labelsmoothing+dp03+NoLangEmb
 
 
 

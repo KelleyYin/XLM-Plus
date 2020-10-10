@@ -549,11 +549,15 @@ class Trainer(object):
                 checkpoint_path = self.params.reload_checkpoint
                 assert os.path.isfile(checkpoint_path)
         logger.warning(f"Reloading checkpoint from {checkpoint_path} ...")
-        data = torch.load(checkpoint_path, map_location='cpu')
+        # data = torch.load(checkpoint_path, map_location='cpu')
+        data = torch.load(checkpoint_path, map_location=lambda storage, loc: storage.cuda(self.params.local_rank))
 
         # reload model parameters
         for name in self.MODEL_NAMES:
-            getattr(self, name).load_state_dict(data[name])
+            try:
+                getattr(self, name).load_state_dict({k[len('moudle.'):] : data[name][k]  for k in data[name]})
+            except RuntimeError:
+                getattr(self, name).load_state_dict(data[name])
 
         # reload optimizers
         for name in self.optimizers.keys():
@@ -827,7 +831,7 @@ class EncDecTrainer(Trainer):
 
         super().__init__(data, params)
 
-    def mt_step(self, lang1, lang2, lambda_coeff):
+    def _mt_step(self, lang1, lang2, lambda_coeff):
         """
         Machine translation step.
         Can also be used for denoising auto-encoding.
@@ -874,12 +878,25 @@ class EncDecTrainer(Trainer):
         loss = lambda_coeff * loss
 
         # optimize
-        self.optimize(loss)
+        #self.optimize(loss)
 
         # number of processed sentences / words
         self.n_sentences += params.batch_size
         self.stats['processed_s'] += len2.size(0)
         self.stats['processed_w'] += (len2 - 1).sum().item()
+        
+        return loss
+
+    def mt_step(self, lang1, lang2, lambda_coeff):
+        if self.params.mnmt == False:
+            loss = self._mt_step(lang1, lang2, lambda_coeff)
+            self.optimize(loss)
+        else:
+            total_loss = 0
+            for lang1, lang2 in shuf_order(self.params.mt_steps, self.params):
+                total_loss += self._mt_step(lang1, lang2, lambda_coeff)
+            self.optimize(total_loss)
+        
 
     def bt_step(self, lang1, lang2, lang3, lambda_coeff):
         """

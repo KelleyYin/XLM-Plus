@@ -25,7 +25,7 @@ class wordEmbedding(nn.Module):
         self.dico = dico
         self.embed_dim = embed_dim
         self.emb = self.build_embedding()
-        if params.share_lang_embeddings and params.n_langs > 1 and params.use_lang_emb:
+        if  params.n_langs > 1 and params.use_lang_emb:
             self.lang_emb = self.Embedding(self.params.n_langs, self.embed_dim)
         else:
             self.lang_emb = None

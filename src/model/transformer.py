@@ -432,15 +432,9 @@ class TransformerModel(nn.Module):
                 tensor = self.layer_norm15[i](tensor)
 
             # FFN
-            if ('%i_in' % i) in self.memories:
-                tensor = tensor + self.memories['%i_in' % i](tensor)
-            else:
-                tensor = tensor + self.ffns[i](tensor)
+            tensor = tensor + self.ffns[i](tensor)
             tensor = self.layer_norm2[i](tensor)
 
-            # memory
-            if ('%i_after' % i) in self.memories:
-                tensor = tensor + self.memories['%i_after' % i](tensor)
             # TODO: add extra layer norm here?
 
             tensor *= mask.unsqueeze(-1).to(tensor.dtype)
