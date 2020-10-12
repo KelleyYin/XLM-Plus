@@ -110,18 +110,18 @@ class Evaluator(object):
         assert stream is False or lang2 is None
 
         # hacks to reduce evaluation time when using many languages
-        if len(self.params.langs) > 30:
-            eval_lgs = set(["ar", "bg", "de", "el", "en", "es", "fr", "hi", "ru", "sw", "th", "tr", "ur", "vi", "zh", "ab", "ay", "bug", "ha", "ko", "ln", "min", "nds", "pap", "pt", "tg", "to", "udm", "uk", "zh_classical"])
-            eval_lgs = set(["ar", "bg", "de", "el", "en", "es", "fr", "hi", "ru", "sw", "th", "tr", "ur", "vi", "zh"])
-            subsample = 10 if (data_set == 'test' or lang1 not in eval_lgs) else 5
-            n_sentences = 600 if (data_set == 'test' or lang1 not in eval_lgs) else 1500
-        elif len(self.params.langs) > 5:
-            subsample = 10 if data_set == 'test' else 5
-            n_sentences = 300 if data_set == 'test' else 1500
-        else:
-            # n_sentences = -1 if data_set == 'valid' else 100
-            n_sentences = -1
-            subsample = 1
+        # if len(self.params.langs) > 30:
+        #     eval_lgs = set(["ar", "bg", "de", "el", "en", "es", "fr", "hi", "ru", "sw", "th", "tr", "ur", "vi", "zh", "ab", "ay", "bug", "ha", "ko", "ln", "min", "nds", "pap", "pt", "tg", "to", "udm", "uk", "zh_classical"])
+        #     eval_lgs = set(["ar", "bg", "de", "el", "en", "es", "fr", "hi", "ru", "sw", "th", "tr", "ur", "vi", "zh"])
+        #     subsample = 10 if (data_set == 'test' or lang1 not in eval_lgs) else 5
+        #     n_sentences = 600 if (data_set == 'test' or lang1 not in eval_lgs) else 1500
+        # elif len(self.params.langs) > 5:
+        #     subsample = 10 if data_set == 'test' else 5
+        #     n_sentences = 300 if data_set == 'test' else 1500
+        # else:
+        #     # n_sentences = -1 if data_set == 'valid' else 100
+        n_sentences = self.params.eval_num
+        subsample = 1
 
         if lang2 is None:
             if stream:
@@ -538,7 +538,7 @@ def convert_to_text(batch, lengths, dico, params):
     """
     batch = batch.cpu().numpy()
     lengths = lengths.cpu().numpy()
-
+    batch[0] = params.eos_index
     slen, bs = batch.shape
     assert lengths.max() == slen and lengths.shape[0] == bs
     assert (batch[0] == params.eos_index).sum() == bs

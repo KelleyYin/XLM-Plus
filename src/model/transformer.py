@@ -268,7 +268,7 @@ class TransformerModel(nn.Module):
         self.is_encoder = is_encoder
         self.is_decoder = not is_encoder
         self.with_output = with_output
-
+        self.params = params
         # dictionary / languages
         self.n_langs = params.n_langs
         self.n_words = params.n_words = len(dico)
@@ -487,6 +487,9 @@ class TransformerModel(nn.Module):
         generated.fill_(self.pad_index)       # fill upcoming ouput with <PAD>
         generated[0].fill_(self.eos_index)    # we use <EOS> for <BOS> everywhere
 
+        if self.params.mnmt:
+            generated[0].fill_(tgt_lang_id)
+
         # positions
         positions = src_len.new(max_len).long()
         positions = torch.arange(max_len, out=positions).unsqueeze(1).expand(max_len, bs)
@@ -542,8 +545,6 @@ class TransformerModel(nn.Module):
         if cur_len == max_len:
             generated[-1].masked_fill_(unfinished_sents.byte(), self.eos_index)
 
-        # sanity check
-        assert (generated == self.eos_index).sum() == 2 * bs
 
         return generated[:cur_len], gen_len
 
@@ -581,6 +582,9 @@ class TransformerModel(nn.Module):
         generated = src_len.new(max_len, bs * beam_size)  # upcoming output
         generated.fill_(self.pad_index)                   # fill upcoming ouput with <PAD>
         generated[0].fill_(self.eos_index)                # we use <EOS> for <BOS> everywhere
+        
+        if self.params.mnmt:
+            generated[0].fill_(tgt_lang_id)
 
         # generated hypotheses
         generated_hyps = [BeamHypotheses(beam_size, max_len, length_penalty, early_stopping) for _ in range(bs)]
@@ -717,8 +721,6 @@ class TransformerModel(nn.Module):
             decoded[:tgt_len[i] - 1, i] = hypo
             decoded[tgt_len[i] - 1, i] = self.eos_index
 
-        # sanity check
-        assert (decoded == self.eos_index).sum() == 2 * bs
 
         return decoded, tgt_len
 

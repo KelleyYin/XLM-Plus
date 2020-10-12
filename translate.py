@@ -58,6 +58,7 @@ def get_parser():
     # source language / target language
     parser.add_argument("--src_lang", type=str, default="", help="Source language")
     parser.add_argument("--tgt_lang", type=str, default="", help="Target language")
+    parser.add_argument("--mnmt", help="use multilingual mnmt", type=bool_flag, default=False)
 
     return parser
 
@@ -72,6 +73,7 @@ def main(params):
     params = parser.parse_args()
     reloaded = torch.load(params.model_path)
     model_params = AttrDict(reloaded['params'])
+    model_params['mnmt'] = params.mnmt
     logger.info("Supported languages: %s" % ", ".join(model_params.lang2id.keys()))
 
     # update dictionary parameters

@@ -22,6 +22,7 @@ from .utils import to_cuda, concat_batches, find_modules
 from .utils import parse_lambda_config, update_lambdas
 from .model.memory import HashingMemory
 from .model.transformer import TransformerFFN
+from .utils import bool_flag, initialize_exp, set_sampling_probs, shuf_order
 
 
 logger = getLogger()
@@ -856,6 +857,9 @@ class EncDecTrainer(Trainer):
         langs1 = x1.clone().fill_(lang1_id)
         langs2 = x2.clone().fill_(lang2_id)
 
+        if params.mnmt:
+            x2[0] = lang2_id
+
         # target words to predict
         alen = torch.arange(len2.max(), dtype=torch.long, device=len2.device)
         pred_mask = alen[:, None] < len2[None] - 1  # do not predict anything given the last target word
@@ -893,9 +897,14 @@ class EncDecTrainer(Trainer):
             self.optimize(loss)
         else:
             total_loss = 0
+            count = 0
             for lang1, lang2 in shuf_order(self.params.mt_steps, self.params):
-                total_loss += self._mt_step(lang1, lang2, lambda_coeff)
-            self.optimize(total_loss)
+                if "{}-{}".format(lang1,lang2) not in self.params.zero_shot:
+                    total_loss += self._mt_step(lang1, lang2, lambda_coeff)
+                    count += 1
+            if count !=0:
+                total_loss = total_loss / count
+                self.optimize(total_loss)
         
 
     def bt_step(self, lang1, lang2, lang3, lambda_coeff):

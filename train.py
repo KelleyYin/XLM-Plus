@@ -207,8 +207,10 @@ def get_parser():
                         help="Only run evaluations")
 
     #multilingual NMT
-    parser.add_argument("--mnmt", help="use multilingual mnmt", action="store_true")
-
+    parser.add_argument("--mnmt", help="use multilingual mnmt", type=bool_flag, default=False)
+    parser.add_argument("--zero_shot", nargs='*', default=[],
+                        help="es-fr es-zh fr-zh zh-fr")
+    parser.add_argument("--eval_num",type=int,default=-1)
 
     # debug
     parser.add_argument("--debug_train", type=bool_flag, default=False,
@@ -295,6 +297,7 @@ def main(params):
             # machine translation steps
             for lang1, lang2 in shuf_order(params.mt_steps, params):
                 trainer.mt_step(lang1, lang2, params.lambda_mt)
+                if params.mnmt: break
 
             # back-translation steps
             for lang1, lang2, lang3 in shuf_order(params.bt_steps):
