@@ -131,12 +131,7 @@ def main(params):
 
     for i in range(0, len(src_sent), params.batch_size):
 
-        # prepare batch
-        if model_params.share_word_embeddings or model_params.share_all_embeddings:
-            word_ids = [torch.LongTensor([dico.index(w) for w in s.strip().split()])
-                        for s in src_sent[i:i + params.batch_size]]
-        else:
-            word_ids = [torch.LongTensor([src_dico.index(w) for w in s.strip().split()])
+        word_ids = [torch.LongTensor([src_dico.index(w) for w in s.strip().split()])
                         for s in src_sent[i:i + params.batch_size]]
 
         lengths = torch.LongTensor([len(s) + 2 for s in word_ids])
@@ -171,10 +166,7 @@ def main(params):
 
             # output translation
             source = src_sent[i + j].strip()
-            if model_params.share_word_embeddings or model_params.share_all_embeddings:
-                target = " ".join([dico[sent[k].item()] for k in range(len(sent))])
-            else:
-                target = " ".join([tgt_dico[sent[k].item()] for k in range(len(sent))])
+            target = " ".join([tgt_dico[sent[k].item()] for k in range(len(sent))])
             sys.stderr.write("%i / %i: %s -> %s\n" % (i + j, len(src_sent), source, target))
             f.write(target + "\n")
     f.close()
